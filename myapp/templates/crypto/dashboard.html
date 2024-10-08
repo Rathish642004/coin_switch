@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+<body>
+    <h1>Crypto Dashboard</h1>
+    <div class="dashboard-container">
+        
+        <div class="card" onclick="showForm('balanceForm'); getBalance()">
+            <h3>Assets Balance</h3>
+            <p>View your assets balance</p>
+        </div>
+        <div class="card" onclick="showForm('withdrawalForm')">
+            <h3>Crypto Withdrawal</h3>
+            <p>Withdraw your cryptocurrencies</p>
+        </div>
+
+        <div class="card" onclick="showForm('orderForm')">
+            <h3>Create Order</h3>
+            <p>Place a new crypto order</p>
+        </div>
+
+        <div class="card" onclick="showForm('cancelOrderForm')">
+            <h3>Cancel Order</h3>
+            <p>Cancel an existing order</p>
+        </div>
+
+        <div class="card" onclick="getOrders()">
+            <h3>Orders</h3>
+            <p>View your order history</p>
+        </div>
+    </div>
+
+    <!-- Forms -->
+    <div id="balanceForm" class="asset-balance">
+        <h2>Assets Balance</h2>
+        <div id="balance-result" class="scrollable-table"></div>
+        <button onclick="hideForms()">Close</button>
+    </div>
+    
+
+    <div id="withdrawalForm" class="input-form">
+        <h2>Withdraw Crypto</h2>
+        <form id="withdrawalFormSubmit">
+            <label for="assetName">Asset Name:</label>
+            <input type="text" id="assetName" required>
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" min="0" step="0.00000001" required>
+            <label for="address">Withdrawal Address:</label>
+            <input type="text" id="address" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="withdrawal-result"></div>
+        <button onclick="hideForms()">Close</button>
+    </div>
+
+    <div id="orderForm" class="input-form">
+        <h2>Create New Order</h2>
+        <form id="orderFormSubmit">
+            <label for="orderType">Order Type:</label>
+            <select id="orderType" required>
+                <option value="LIMIT">Limit</option>
+                <option value="MARKET">Market</option>
+            </select>
+            <label for="side">Side:</label>
+            <select id="side" required>
+                <option value="BUY">Buy</option>
+                <option value="SELL">Sell</option>
+            </select>
+            <label for="instrument">Instrument:</label>
+            <input type="text" id="instrument" required>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" min="0" step="0.00000001" required>
+            <label for="limitPrice">Limit Price:</label>
+            <input type="number" id="limitPrice" min="0" step="0.00000001">
+            <button type="submit">Submit</button>
+        </form>
+        <div id="order-result"></div>
+        <button onclick="hideForms()">Close</button>
+    </div>
+
+    <div id="cancelOrderForm" class="input-form">
+        <h2>Cancel an Order</h2>
+        <form id="cancelOrderFormSubmit">
+            <label for="orderId">Order ID:</label>
+            <input type="text" id="orderId" required>
+            <button type="submit">Cancel Order</button>
+        </form>
+        <div id="cancel-order-result"></div>
+        <button onclick="hideForms()">Close</button>
+    </div>
+
+    <div id="ordersForm" class="input-form">
+        <h2>Order History</h2>
+        <div id="orders-result"></div>
+        <button onclick="hideForms()">Close</button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="spinner">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>
