@@ -4,6 +4,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json, time, requests
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from django.conf import settings
+from .models import Order
+from django.db.models import Q
+from decimal import Decimal
 
 # Fetch environment variables
 BASE_URL = "https://exchange.coinswitch.co"
@@ -31,7 +34,7 @@ def send_request(url_path, method, message=None):
     headers = {
         'Content-Type': 'application/json',
         'CSX-ACCESS-KEY': PUBLIC_KEY,
-        'CSX-SIGNATURE': signature,
+        'CSX-SIGNATURE': generate_signature(PRIVATE_KEY, sign_params),
         'CSX-ACCESS-TIMESTAMP': str(timestamp),
     }
 
@@ -93,16 +96,15 @@ def withdraw_ajax(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-
 @csrf_exempt
 def create_order_ajax(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        required_fields = ['type', 'side', 'instrument', 'quantity']
+        required_fields = ['type', 'side', 'instrument', 'quantity', 'limitPrice'] 
         
         if not all(field in data for field in required_fields):
             return JsonResponse({'error': 'Missing order parameters'}, status=400)
-        print()
+
         message = {
             "type": data['type'],
             "side": data['side'],
@@ -110,10 +112,27 @@ def create_order_ajax(request):
             "quantityType": "quote",
             "tdsDeducted": True,
             "quantity": data['quantity'],
-            "limitPrice": data.get('limitprice'),
+            "limitPrice": data['limitPrice'],  # Accessing with the correct key
             "username": "bnm29"
         }
+        print(message)
         result = send_request('/api/v1/orders/', 'POST', message)
+
+        
+        if 'data' in result:
+            # Store order in database
+            Order.objects.create(
+                order_id=result['data']['orderId'],
+                client_order_id=result['data'].get('clientOrderId', ''),
+                instrument=result['data']['instrument'],
+                side=result['data']['side'],
+                status=result['data']['status'],
+                quantity=Decimal(result['data']['quantity']),
+                filled_quantity=Decimal(result['data'].get('filledQuantity', 0)),
+                limit_price=Decimal(result['data'].get('limitPrice', 0)),
+                average_price=Decimal(result['data'].get('averagePrice', 0)),
+            )
+        
         return JsonResponse(result)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -133,8 +152,42 @@ def cancel_order_ajax(request):
 @csrf_exempt
 def orders(request):
     if request.method == 'GET':
-        result = send_request('/api/v1/me/orders/?onlyOpen=false&type=LIMIT', 'GET')
-        return JsonResponse(result)
+        status_filter = request.GET.get('status', 'all')
+        source_filter = request.GET.get('source', 'all')
+        
+        # Fetch from API
+        api_result = send_request('/api/v1/me/orders/?onlyOpen=false&type=LIMIT', 'GET')
+        
+        # Update local database with API results
+        if 'data' in api_result:
+            for order_data in api_result['data']:
+                Order.objects.update_or_create(
+                    order_id=order_data['orderId'],
+                    defaults={
+                        'client_order_id': order_data.get('clientOrderId', ''),
+                        'instrument': order_data['instrument'],
+                        'side': order_data['side'],
+                        'status': order_data['status'],
+                        'quantity': Decimal(order_data['quantity']),
+                        'filled_quantity': Decimal(order_data.get('filledQuantity', 0)),
+                        'limit_price': Decimal(order_data.get('limitPrice', 0)),
+                        'average_price': Decimal(order_data.get('averagePrice', 0)),
+                        'is_local': False,
+                    }
+                )
+        
+        # Query database with filters
+        queryset = Order.objects.all()
+        if status_filter != 'all':
+            queryset = queryset.filter(status=status_filter.upper())
+        if source_filter == 'local':
+            queryset = queryset.filter(is_local=True)
+        elif source_filter == 'external':
+            queryset = queryset.filter(is_local=False)
+        
+        orders_data = list(queryset.values())
+        return JsonResponse({'data': orders_data})
+    
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def dashboard(request):
