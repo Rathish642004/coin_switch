@@ -131,6 +131,7 @@ def create_order_ajax(request):
                 filled_quantity=Decimal(result['data'].get('filledQuantity', 0)),
                 limit_price=Decimal(result['data'].get('limitPrice', 0)),
                 average_price=Decimal(result['data'].get('averagePrice', 0)),
+                is_local=True
             )
         
         return JsonResponse(result)
@@ -172,7 +173,6 @@ def orders(request):
                         'filled_quantity': Decimal(order_data.get('filledQuantity', 0)),
                         'limit_price': Decimal(order_data.get('limitPrice', 0)),
                         'average_price': Decimal(order_data.get('averagePrice', 0)),
-                        'is_local': False,
                     }
                 )
         

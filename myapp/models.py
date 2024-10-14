@@ -23,7 +23,7 @@ class Order(models.Model):
     filled_quantity = models.DecimalField(max_digits=20, decimal_places=8)
     limit_price = models.DecimalField(max_digits=20, decimal_places=8, null=True)
     average_price = models.DecimalField(max_digits=20, decimal_places=8, null=True)
-    is_local = models.BooleanField(default=True)  # True if placed through this app
+    is_local = models.BooleanField(default=False)  # True if placed through this app
     
     class Meta:
         ordering = ['-created_at']

@@ -169,7 +169,9 @@ function displayOrders(orders) {
     orders.forEach(order => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${formatOrderId(order.order_id)}</td>
+            <td>
+                <div class="scrollable-id">${formatOrderId(order.order_id)}</div> 
+            </td>
             <td>${order.instrument}</td>
             <td>${order.type || 'LIMIT'}</td>
             <td class="${order.side.toLowerCase()}">${order.side}</td>
