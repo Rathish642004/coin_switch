@@ -87,7 +87,7 @@ def withdraw_ajax(request):
         message = {
             "assetName": data['assetName'],
             "chain": data['chain'],
-            "amount": amount,
+            "amount": amount, 
             "address": data['address'],
             "subaddress": ""
         }
