@@ -86,11 +86,12 @@ def withdraw_ajax(request):
 
         message = {
             "assetName": data['assetName'],
-            "chain": "mainnet",
-            "amount": amount, 
+            "chain": data['chain'],
+            "amount": amount,
             "address": data['address'],
             "subaddress": ""
         }
+        print(message)
         result = send_request('/api/v1/me/withdrawal', 'POST', message)
         return JsonResponse(result)
 
