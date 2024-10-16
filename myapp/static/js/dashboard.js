@@ -199,6 +199,7 @@ document.getElementById('withdrawalFormSubmit').addEventListener('submit', async
         assetName: document.getElementById('assetName').value,
         amount: document.getElementById('amount').value,
         address: document.getElementById('address').value,
+        chain: document.getElementById('chain').value,
     };
     
     const result = await fetchData('/withdraw/', 'POST', formData);
